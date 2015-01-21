@@ -3,10 +3,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin)
 
 # source files
 set(SOURCES
-    thread.c
-    thread_structures.h
-    scheduler.c
-    mutex.c
+    ../include/thread.h
+    ../include/scheduler.h
+    ../include/mutex.h
+    thread/thread_impl.h
+    thread/thread.c
+    scheduler/scheduler_impl.h
+    scheduler/scheduler.c
+    mutex/mutex.c
 )
 
 # executable target
