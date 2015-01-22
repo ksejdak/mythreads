@@ -17,6 +17,7 @@
 /// @brief Represents current state of thread in terms of scheduling.
 typedef enum
 {
+    STATE_NEW,
     STATE_PENDING,
     STATE_READY,
     STATE_RUNNING

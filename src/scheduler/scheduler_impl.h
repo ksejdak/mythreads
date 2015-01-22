@@ -17,6 +17,10 @@
 
 #define SCHEDULER_PREEMPTION_INTERVAL_USECS     1000000
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// TYPES
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// @brief Represents scheduler state and resources.
 typedef struct
 {
@@ -36,11 +40,20 @@ typedef struct node
     mythread_t *thread;
 } threadnode_t;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// INTERFACE
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+extern scheduler_t scheduler;
+
 /// @brief Registers new tread in schedulers lists and initializes some its meta data.
 /// @param [in] thread      thread handle to be registered
 void register_thread(mythread_t *thread);
 
-/// @brief Sets POSIX alarm to send SIGALRM after default chunk of time.
+/// @brief Inserts newly created thread to appropriate
+void enqueue_new_thread();
+
+/// Registers next preemption by setting POSIX alarm.
 void schedule_next_preemption();
 
 /// @brief Handler of POSIX signals.
@@ -49,14 +62,5 @@ void signal_handler(int sig);
 
 /// @brief Schedules next thread to be executed.
 void select_next_thread();
-
-/// @brief Implements Round Robin policy for scheduling threads.
-void exec_round_robin_policy();
-
-/// @brief Implements FIFO policy for scheduling threads.
-void exec_fifo_policy();
-
-/// @brief Implements aging policy for scheduling threads.
-void exec_aging_policy();
 
 #endif

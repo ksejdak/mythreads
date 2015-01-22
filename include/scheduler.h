@@ -12,9 +12,7 @@
 /// @brief Represents supported scheduling policis, that can be executed by scheduler.
 typedef enum
 {
-    POLICY_ROUND_ROBIN,
-    POLICY_FIFO,
-    POLICY_AGING
+    POLICY_ROUND_ROBIN
 } schedulingpolicy_t;
 
 /// @brief Initializes and starts scheduler.

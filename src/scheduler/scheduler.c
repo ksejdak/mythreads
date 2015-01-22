@@ -8,6 +8,7 @@
 
 #include "scheduler.h"
 #include "scheduler_impl.h"
+#include "roundrobin_policy.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -17,22 +18,13 @@
 #include <assert.h>
 #include <stdbool.h>
 
-static scheduler_t scheduler;
-
-threadnode_t *pending_threads_head;
-threadnode_t *pending_threads_tail;
-threadnode_t *ready_threads_head;
-threadnode_t *ready_threads_tail;
-threadnode_t *running_threads_head;
-threadnode_t *running_threads_tail;
+scheduler_t scheduler;
 
 char *policy_to_str(schedulingpolicy_t scheduling_policy)
 {
     switch(scheduling_policy)
     {
     case POLICY_ROUND_ROBIN:    return "Round Robin";
-    case POLICY_FIFO:           return "Fifo";
-    case POLICY_AGING:          return "Aging";
     }
 
     assert(false);
@@ -54,6 +46,8 @@ int start_scheduler(schedulingpolicy_t scheduling_policy)
 
 void register_thread(mythread_t *thread)
 {
+    thread->state = STATE_NEW;
+
     ++scheduler.threads_num;
     ++scheduler.next_id;
 
@@ -61,13 +55,13 @@ void register_thread(mythread_t *thread)
     threadnode_t *thread_node = (threadnode_t *) malloc(sizeof(threadnode_t));
     thread_node->thread = thread;
 
-    // Each newly created thread is immediately in READY state.
-    if(ready_threads_head)
-        insque(thread_node, ready_threads_tail);
-    else
-        ready_threads_head = thread_node;
-
-    ready_threads_tail = thread_node;
+    // Each newly created thread is immediately made 'ready'.
+    switch(scheduler.scheduling_policy)
+    {
+    case POLICY_ROUND_ROBIN:
+        roundrobin_make_ready(thread_node);
+        break;
+    }
 }
 
 void schedule_next_preemption()
@@ -89,29 +83,17 @@ void signal_handler(int sig)
 void select_next_thread()
 {
     printf("Scheduling next thread.\n");
+
+    threadnode_t *next_running_thread;
     switch(scheduler.scheduling_policy)
     {
     case POLICY_ROUND_ROBIN:
-        exec_round_robin_policy();
-        break;
-    case POLICY_FIFO:
-        exec_fifo_policy();
-        break;
-    case POLICY_AGING:
-        exec_aging_policy();
+        next_running_thread = roundrobin_next_running_thread();
+        roundrobin_make_running(next_running_thread);
         break;
     }
-}
 
-void exec_round_robin_policy()
-{
-    threadnode_t *first_ready_thread = ready_threads_head;
-    remque(first_ready_thread);
-    ready_threads_head = first_ready_thread->forward;
-
-
-    ucontext_t next_thread_context = read;
-
+    ucontext_t next_thread_context = next_running_thread->thread->context;
     if(swapcontext(&scheduler.swapped_context, &next_thread_context) == -1)
     {
         printf("Swapping context failed! Aborting program.\n");
@@ -119,10 +101,3 @@ void exec_round_robin_policy()
     }
 }
 
-void exec_fifo_policy()
-{
-}
-
-void exec_aging_policy()
-{
-}

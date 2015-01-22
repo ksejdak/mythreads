@@ -10,6 +10,7 @@ set(SOURCES
     thread/thread.c
     scheduler/scheduler_impl.h
     scheduler/scheduler.c
+    scheduler/roundrobin_policy.c
     mutex/mutex.c
 )
 
