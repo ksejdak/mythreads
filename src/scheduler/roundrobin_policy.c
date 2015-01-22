@@ -67,6 +67,11 @@ void roundrobin_make_running(threadnode_t *thread_node)
     thread_node->thread->state = STATE_RUNNING;
 }
 
+threadnode_t *roundrobin_currently_running_thread()
+{
+    return running_thread;
+}
+
 threadnode_t *roundrobin_next_running_thread()
 {
     threadnode_t *first_ready_thread = ready_threads_head;

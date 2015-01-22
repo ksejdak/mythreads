@@ -28,6 +28,8 @@ typedef struct
     struct sigaction signal_action;
     unsigned int threads_num;
     unsigned int next_id;
+    char stack[THREAD_STACK_DEPTH];
+    ucontext_t context;
     ucontext_t swapped_context;
     mythread_t *current_thread;
 } scheduler_t;
@@ -45,6 +47,10 @@ typedef struct node
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern scheduler_t scheduler;
+
+/// @brief Scheduler loop. This call should not leave.
+/// @note  This call should be made insde main as last instruction.
+void scheduler_loop();
 
 /// @brief Registers new tread in schedulers lists and initializes some its meta data.
 /// @param [in] thread      thread handle to be registered

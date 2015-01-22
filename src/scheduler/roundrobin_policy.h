@@ -24,6 +24,8 @@ void roundrobin_make_ready(struct node *thread_node);
 /// @param [i] thread_node          thread to be changed
 void roundrobin_make_running(struct node *thread_node);
 
+struct node *roundrobin_currently_running_thread();
+
 /// @brief Executes Round Robin schduling algorithm to select next thread to be 'running'.
 /// @return node representation of next running thread.
 struct node *roundrobin_next_running_thread();

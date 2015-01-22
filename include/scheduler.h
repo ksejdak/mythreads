@@ -16,6 +16,6 @@ typedef enum
 } schedulingpolicy_t;
 
 /// @brief Initializes and starts scheduler.
-int start_scheduler(schedulingpolicy_t scheduling_policy);
+void start_scheduler(schedulingpolicy_t scheduling_policy);
 
 #endif
