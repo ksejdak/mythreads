@@ -61,7 +61,10 @@ void roundrobin_make_running(threadnode_t *thread_node)
 
     // Change state of currently running thread to 'ready'.
     if(running_thread)
+    {
         insque(running_thread, ready_threads_tail);
+        running_thread->thread->state = STATE_READY;
+    }
 
     running_thread = thread_node;
     thread_node->thread->state = STATE_RUNNING;
@@ -74,9 +77,13 @@ threadnode_t *roundrobin_currently_running_thread()
 
 threadnode_t *roundrobin_next_running_thread()
 {
+    printf("A.\n");
     threadnode_t *first_ready_thread = ready_threads_head;
+    printf("B.\n");
     remque(first_ready_thread);
+    printf("C.\n");
     ready_threads_head = first_ready_thread->forward;
+    printf("D.\n");
 
     return first_ready_thread;
 }

@@ -40,8 +40,6 @@ void start_scheduler(schedulingpolicy_t scheduling_policy)
     scheduler.signal_action.sa_handler = signal_handler;
     sigaction(SIGALRM, &scheduler.signal_action, NULL);
 
-    printf("SIGMASK after: %d\n", scheduler.context.uc_sigmask);
-
     // Start scheduler event loop.
     scheduler_loop();
 }

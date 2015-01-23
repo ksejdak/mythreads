@@ -12,7 +12,7 @@
 #include <ucontext.h>
 
 #define THREAD_NAME_MAX_LENGTH      16
-#define THREAD_STACK_DEPTH          1024
+#define THREAD_STACK_DEPTH          16384
 
 /// @brief Represents current state of thread in terms of scheduling.
 typedef enum
