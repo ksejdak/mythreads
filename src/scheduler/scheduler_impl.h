@@ -15,7 +15,7 @@
 #include <signal.h>
 #include <ucontext.h>
 
-#define SCHEDULER_PREEMPTION_INTERVAL_USECS     1000000
+#define SCHEDULER_PREEMPTION_INTERVAL_USECS     10000
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// TYPES
@@ -29,18 +29,9 @@ typedef struct
     unsigned int threads_num;
     unsigned int next_id;
     char stack[THREAD_STACK_DEPTH];
-    ucontext_t context;
-    ucontext_t swapped_context;
     mythread_t *current_thread;
+    ucontext_t scheduler_context;
 } scheduler_t;
-
-/// @brief Represents node in POSIX doubly-linked list.
-typedef struct node
-{
-    struct node *forward;
-    struct node *backward;
-    mythread_t *thread;
-} threadnode_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// INTERFACE
@@ -48,16 +39,9 @@ typedef struct node
 
 extern scheduler_t scheduler;
 
-/// @brief Scheduler loop. This call should not leave.
-/// @note  This call should be made insde main as last instruction.
-void scheduler_loop();
-
 /// @brief Registers new tread in schedulers lists and initializes some its meta data.
 /// @param [in] thread      thread handle to be registered
 void register_thread(mythread_t *thread);
-
-/// @brief Inserts newly created thread to appropriate
-void enqueue_new_thread();
 
 /// Registers next preemption by setting POSIX alarm.
 void schedule_next_preemption();

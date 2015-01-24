@@ -8,10 +8,10 @@
 
 #include "roundrobin_policy.h"
 #include "scheduler_impl.h"
+#include "utils/queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <search.h>
 
 threadnode_t *pending_threads_head;
 threadnode_t *pending_threads_tail;
@@ -26,10 +26,10 @@ void roundrobin_make_pending(threadnode_t *thread_node)
     if(thread_node->thread->state == STATE_PENDING)
         return;
 
-    remque(thread_node);
+    queue_remove(thread_node);
 
     if(pending_threads_head)
-        insque(thread_node, pending_threads_tail);
+        queue_insert(thread_node, pending_threads_tail);
     else
         pending_threads_head = thread_node;
 
@@ -43,10 +43,10 @@ void roundrobin_make_ready(threadnode_t *thread_node)
         return;
 
     if(thread_node->thread->state != STATE_NEW)
-        remque(thread_node);
+        queue_remove(thread_node);
 
     if(ready_threads_head)
-        insque(thread_node, ready_threads_tail);
+        queue_insert(thread_node, ready_threads_tail);
     else
         ready_threads_head = thread_node;
 
@@ -62,7 +62,8 @@ void roundrobin_make_running(threadnode_t *thread_node)
     // Change state of currently running thread to 'ready'.
     if(running_thread)
     {
-        insque(running_thread, ready_threads_tail);
+        queue_insert(running_thread, ready_threads_tail);
+        ready_threads_tail = running_thread;
         running_thread->thread->state = STATE_READY;
     }
 
@@ -77,13 +78,9 @@ threadnode_t *roundrobin_currently_running_thread()
 
 threadnode_t *roundrobin_next_running_thread()
 {
-    printf("A.\n");
     threadnode_t *first_ready_thread = ready_threads_head;
-    printf("B.\n");
-    remque(first_ready_thread);
-    printf("C.\n");
-    ready_threads_head = first_ready_thread->forward;
-    printf("D.\n");
+    ready_threads_head = first_ready_thread->next;
+    queue_remove(first_ready_thread);
 
     return first_ready_thread;
 }

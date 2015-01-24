@@ -12,6 +12,7 @@ set(SOURCES
     scheduler/scheduler.c
     scheduler/roundrobin_policy.c
     mutex/mutex.c
+    utils/queue.c
 )
 
 # executable target

@@ -9,6 +9,7 @@
 #include "scheduler.h"
 #include "scheduler_impl.h"
 #include "roundrobin_policy.h"
+#include "utils/queue.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -19,6 +20,7 @@
 #include <stdbool.h>
 
 scheduler_t scheduler;
+static bool initialized = 0;
 
 char *policy_to_str(schedulingpolicy_t scheduling_policy)
 {
@@ -30,34 +32,10 @@ char *policy_to_str(schedulingpolicy_t scheduling_policy)
     assert(false);
 }
 
-void start_scheduler(schedulingpolicy_t scheduling_policy)
-{
-    // Set scheduling strategy.
-    printf("Starting scheduler with policy: %s.\n", policy_to_str(scheduling_policy));
-    scheduler.scheduling_policy = scheduling_policy;
-
-    // Register handler for SIGALRM signal, that will preempt thread implementation.
-    scheduler.signal_action.sa_handler = signal_handler;
-    sigaction(SIGALRM, &scheduler.signal_action, NULL);
-
-    // Start scheduler event loop.
-    scheduler_loop();
-}
-
-void scheduler_loop()
-{
-    while(1)
-    {
-        printf("LOOP\n");
-        schedule_next_preemption();
-        select_next_thread();
-    }
-}
-
 void register_thread(mythread_t *thread)
 {
     thread->state = STATE_NEW;
-    thread->context.uc_link = &scheduler.context;
+    //hread->context.uc_sigmask = scheduler.signal_action.sa_mask;
 
     ++scheduler.threads_num;
     ++scheduler.next_id;
@@ -75,13 +53,28 @@ void register_thread(mythread_t *thread)
     }
 }
 
+void start_scheduler(schedulingpolicy_t scheduling_policy)
+{
+    // Set scheduling strategy.
+    printf("Starting scheduler with policy: %s.\n", policy_to_str(scheduling_policy));
+    scheduler.scheduling_policy = scheduling_policy;
+
+    // Register handler for SIGALRM signal, that will preempt thread implementation.
+    scheduler.signal_action.sa_handler = signal_handler;
+    sigaction(SIGALRM, &scheduler.signal_action, NULL);
+
+    // Start scheduler event loop.
+    schedule_next_preemption();
+    select_next_thread();
+    while(1);
+}
+
 void schedule_next_preemption()
 {
     printf("Scheduling next preemption.\n");
 
     sigaction(SIGALRM, &scheduler.signal_action, NULL);
-    //ualarm(SCHEDULER_PREEMPTION_INTERVAL_USECS, 0);
-    alarm(1);
+    ualarm(SCHEDULER_PREEMPTION_INTERVAL_USECS, 0);
 }
 
 void signal_handler(int sig)
@@ -90,6 +83,7 @@ void signal_handler(int sig)
         return;
 
     printf("Received SIGALRM signal.\n");
+    getcontext(&scheduler.current_thread->context);
     schedule_next_preemption();
     select_next_thread();
 }
@@ -110,12 +104,24 @@ void select_next_thread()
     printf("Next running thread will be: '%s'.\n", next_running_thread->thread->name);
 
     ucontext_t *next_thread_context = &next_running_thread->thread->context;
-    if(swapcontext(&scheduler.swapped_context, next_thread_context) == -1)
-    {
-        printf("Swapping context failed! Aborting program.\n");
-        abort();
-    }
 
-    printf("DONE.\n");
+    if(!initialized)
+    {
+        printf("Saving scheduler context.\n");
+        initialized = true;
+        getcontext(&scheduler.scheduler_context);
+    }
+    else
+    {
+        printf("Saving thread context.\n");
+        getcontext(&scheduler.current_thread->context);
+    }
+    printf("aa");
+
+    scheduler.current_thread = next_running_thread->thread;
+    ucontext_t *garbage;
+    swapcontext(garbage, next_thread_context);
+
+    printf("DONE: %d.\n", scheduler.current_thread->id);
 }
 

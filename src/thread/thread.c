@@ -32,7 +32,6 @@ int mythread_start(void (*thread)(void *), void *args)
 
    new_thread->context.uc_stack.ss_sp = new_thread->stack;
    new_thread->context.uc_stack.ss_size = THREAD_STACK_DEPTH;
-   new_thread->context.uc_link = &scheduler.context;
    makecontext(&new_thread->context, thread, 0);
 
    printf("Created thread: '%s'.\n", new_thread->name);

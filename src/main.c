@@ -14,27 +14,27 @@
 
 void func_1(void *data)
 {
-    printf("1111111111111111\n");
-    printf("1111111111111111\n");
-    printf("1111111111111111\n");
+    int i;
+    for(i = 0; i < 1000000; ++i)
+        printf("1111111111111111 --- %d\n", i);
 
     while(1);
 }
 
 void func_2(void *data)
 {
-    printf("2222222222222222\n");
-    printf("2222222222222222\n");
-    printf("2222222222222222\n");
+    int i;
+    for(i = 0; i < 1000000; ++i)
+        printf("2222222222222222 --- %d\n", i);
 
     while(1);
 }
 
 void func_3(void *data)
 {
-    printf("3333333333333333\n");
-    printf("3333333333333333\n");
-    printf("3333333333333333\n");
+    int i;
+    for(i = 0; i < 1000000; ++i)
+        printf("3333333333333333 --- %d\n", i);
 
     while(1);
 }
@@ -42,6 +42,8 @@ void func_3(void *data)
 int main(int argc, char *argv[])
 {
     printf("===== MyThread test app =====\n");
+
+    //init();
 
     // Create some threads.
     mythread_start(func_1, NULL);
