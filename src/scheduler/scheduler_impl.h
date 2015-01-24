@@ -30,7 +30,7 @@ typedef struct
     unsigned int next_id;
     char stack[THREAD_STACK_DEPTH];
     mythread_t *current_thread;
-    ucontext_t scheduler_context;
+    ucontext_t swapped_context;
 } scheduler_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
