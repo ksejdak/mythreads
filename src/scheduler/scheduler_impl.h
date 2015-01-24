@@ -28,9 +28,6 @@ typedef struct
     struct sigaction signal_action;
     unsigned int threads_num;
     unsigned int next_id;
-    char stack[THREAD_STACK_DEPTH];
-    mythread_t *current_thread;
-    ucontext_t swapped_context;
 } scheduler_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

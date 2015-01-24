@@ -42,17 +42,9 @@ void start_scheduler(schedulingpolicy_t scheduling_policy)
     sigaction(SIGALRM, &scheduler.signal_action, NULL);
 
     // Start scheduler event loop.
-    scheduler_loop();
-}
-
-void scheduler_loop()
-{
-    while(1)
-    {
-        printf("LOOP\n");
-        schedule_next_preemption();
-        select_next_thread();
-    }
+    schedule_next_preemption();
+    select_next_thread();
+    while(1);
 }
 
 void register_thread(mythread_t *thread)
@@ -81,8 +73,7 @@ void schedule_next_preemption()
     printf("Scheduling next preemption.\n");
 
     sigaction(SIGALRM, &scheduler.signal_action, NULL);
-    //ualarm(SCHEDULER_PREEMPTION_INTERVAL_USECS, 0);
-    alarm(1);
+    ualarm(SCHEDULER_PREEMPTION_INTERVAL_USECS, 0);
 }
 
 void signal_handler(int sig)
@@ -99,6 +90,11 @@ void select_next_thread()
 {
     printf("Selecting next thread.\n");
 
+    threadnode_t *current_thread = roundrobin_currently_running_thread();
+    if(current_thread)
+        getcontext(&current_thread->thread->context);
+
+
     threadnode_t *next_running_thread;
     switch(scheduler.scheduling_policy)
     {
@@ -110,8 +106,12 @@ void select_next_thread()
 
     printf("Next running thread will be: '%s'.\n", next_running_thread->thread->name);
 
+    //if(current_thread)
+    //    getcontext(&current_thread->thread->context);
+
     ucontext_t *next_thread_context = &next_running_thread->thread->context;
-    if(swapcontext(&scheduler.swapped_context, next_thread_context) == -1)
+    ucontext_t swapped_context;
+    if(swapcontext(&swapped_context, next_thread_context) == -1)
     {
         printf("Swapping context failed! Aborting program.\n");
         abort();
