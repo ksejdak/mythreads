@@ -28,4 +28,9 @@ void queue_insert(threadnode_t *thread_node, threadnode_t *prev_node);
 /// /// @param [in] thread_node             node to be removed
 void queue_remove(threadnode_t *thread_node);
 
+/// @brief Debugging function, that dumps whole queue to STDOUT.
+/// @param [in] queue_head              head of this queue
+/// @param [in] queue_name              name of this queue
+void queue_dump(threadnode_t *queue_head, const char *queue_name);
+
 #endif

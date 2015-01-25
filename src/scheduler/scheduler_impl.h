@@ -25,11 +25,14 @@
 /// @brief Represents scheduler state and resources.
 typedef struct
 {
+    bool started;
     schedulingpolicy_t scheduling_policy;
     struct sigaction signal_action;
     unsigned int threads_num;
     unsigned int next_id;
     threadnode_t *current_thread_node;
+    ucontext_t context;
+    char stack[THREAD_STACK_DEPTH];
 } scheduler_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

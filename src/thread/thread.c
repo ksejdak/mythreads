@@ -12,9 +12,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ucontext.h>
-#include <unistd.h>
 
 int mythread_start(void (*thread)(void *), void *args)
 {
@@ -27,6 +24,7 @@ int mythread_start(void (*thread)(void *), void *args)
    if(getcontext(&new_thread->context) == -1)
    {
        printf("Error in obtaining thread contex.\n");
+       fflush(stdout);
        free(new_thread);
        return -1;
    }
@@ -36,15 +34,22 @@ int mythread_start(void (*thread)(void *), void *args)
    makecontext(&new_thread->context, thread, 1, args);
 
    printf("Created thread: '%s'.\n", new_thread->name);
+   fflush(stdout);
+
+   return new_thread->id;
 }
 
 int mythread_exit()
 {
     int current_thread_id = scheduler.current_thread_node->thread->id;
     unregister_thread(current_thread_id);
+
+    return 0;
 }
 
 int mythread_kill(int id)
 {
     unregister_thread(id);
+
+    return 0;
 }

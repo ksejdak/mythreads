@@ -9,7 +9,7 @@
 #ifndef ROUNDROBINPOLICY_H
 #define ROUNDROBINPOLICY_H
 
-/// @brief Forwaring declaration of threadnode_t type.
+/// @brief Forward declaration of threadnode_t type.
 struct node;
 
 /// @brief Changes state of given thread (in node representation) to 'pending'.

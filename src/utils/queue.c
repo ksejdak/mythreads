@@ -32,3 +32,26 @@ void queue_remove(threadnode_t *thread_node)
     thread_node->next = NULL;
     thread_node->prev = NULL;
 }
+
+void queue_dump(threadnode_t *queue_head, const char *queue_name)
+{
+    printf("Dumping queue: %s.\n", queue_name);
+    fflush(stdout);
+
+    if(!queue_head)
+    {
+        printf("Queue empty.\n");
+        fflush(stdout);
+        return;
+    }
+
+    threadnode_t *iter;
+    for(iter = queue_head; iter != NULL; iter = iter->next)
+    {
+        printf("%s ", iter->thread->name);
+        fflush(stdout);
+    }
+
+    printf("\n");
+    fflush(stdout);
+}
