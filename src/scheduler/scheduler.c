@@ -50,7 +50,7 @@ void start_scheduler(schedulingpolicy_t scheduling_policy)
 void register_thread(mythread_t *thread)
 {
     thread->state = STATE_NEW;
-    //thread->context.uc_link = &scheduler.context;
+    thread->was_preempted = false;
 
     ++scheduler.threads_num;
     ++scheduler.next_id;
@@ -71,6 +71,7 @@ void register_thread(mythread_t *thread)
 void schedule_next_preemption()
 {
     printf("Scheduling next preemption.\n");
+    fflush(stdout);
 
     sigaction(SIGALRM, &scheduler.signal_action, NULL);
     ualarm(SCHEDULER_PREEMPTION_INTERVAL_USECS, 0);
@@ -82,6 +83,7 @@ void signal_handler(int sig)
         return;
 
     printf("Received SIGALRM signal.\n");
+    fflush(stdout);
     schedule_next_preemption();
     select_next_thread();
 }
@@ -89,11 +91,25 @@ void signal_handler(int sig)
 void select_next_thread()
 {
     printf("Selecting next thread.\n");
+    fflush(stdout);
 
     threadnode_t *current_thread = roundrobin_currently_running_thread();
     if(current_thread)
+    {
+        fflush(stdout);
+
+        // This will be start point of this thread after it gets processor time again.
         getcontext(&current_thread->thread->context);
 
+        // Thread has returned from previous preemption. Continue its execution.
+        if(current_thread->thread->was_preempted)
+        {
+            current_thread->thread->was_preempted = false;
+            printf("Retrieving execution of thread: '%s'.\n", current_thread->thread->name);
+            fflush(stdout);
+            return;
+        }
+    }
 
     threadnode_t *next_running_thread;
     switch(scheduler.scheduling_policy)
@@ -105,9 +121,10 @@ void select_next_thread()
     }
 
     printf("Next running thread will be: '%s'.\n", next_running_thread->thread->name);
+    fflush(stdout);
 
-    //if(current_thread)
-    //    getcontext(&current_thread->thread->context);
+    if(current_thread)
+        current_thread->thread->was_preempted = true;
 
     ucontext_t *next_thread_context = &next_running_thread->thread->context;
     ucontext_t swapped_context;
@@ -116,7 +133,5 @@ void select_next_thread()
         printf("Swapping context failed! Aborting program.\n");
         abort();
     }
-
-    printf("DONE.\n");
 }
 

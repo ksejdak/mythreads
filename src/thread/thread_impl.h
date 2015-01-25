@@ -9,6 +9,7 @@
 #ifndef THREADSTRUCTURES_H
 #define THREADSTRUCTURES_H
 
+#include <stdbool.h>
 #include <ucontext.h>
 
 #define THREAD_NAME_MAX_LENGTH      16
@@ -30,6 +31,7 @@ typedef struct
     char name[THREAD_NAME_MAX_LENGTH];
     char stack[THREAD_STACK_DEPTH];
     int priority;
+    bool was_preempted;
     taskstate_t state;
     ucontext_t context;
 } mythread_t;
