@@ -11,6 +11,7 @@
 
 #include "scheduler.h"
 #include "thread/thread_impl.h"
+#include "utils/queue.h"
 
 #include <signal.h>
 #include <ucontext.h>
@@ -28,6 +29,7 @@ typedef struct
     struct sigaction signal_action;
     unsigned int threads_num;
     unsigned int next_id;
+    threadnode_t *current_thread_node;
 } scheduler_t;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,6 +41,10 @@ extern scheduler_t scheduler;
 /// @brief Registers new tread in schedulers lists and initializes some its meta data.
 /// @param [in] thread      thread handle to be registered
 void register_thread(mythread_t *thread);
+
+/// @brief Unregisters tread from schedulers lists and terminates it.
+/// @param [in] id          id of thread to be terminated
+void unregister_thread(int id);
 
 /// Registers next preemption by setting POSIX alarm.
 void schedule_next_preemption();

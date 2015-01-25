@@ -10,7 +10,6 @@
 #include "scheduler_impl.h"
 #include "utils/queue.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 threadnode_t *pending_threads_head;
@@ -71,16 +70,64 @@ void roundrobin_make_running(threadnode_t *thread_node)
     thread_node->thread->state = STATE_RUNNING;
 }
 
-threadnode_t *roundrobin_currently_running_thread()
-{
-    return running_thread;
-}
-
 threadnode_t *roundrobin_next_running_thread()
 {
     threadnode_t *first_ready_thread = ready_threads_head;
+    if(!first_ready_thread)
+    {
+        printf("asdada\n");
+        return running_thread;
+    }
+
     ready_threads_head = first_ready_thread->next;
     queue_remove(first_ready_thread);
 
     return first_ready_thread;
+}
+
+void roundrobin_remove_thread(int id)
+{
+    threadnode_t *iter;
+
+    // Check in pending list.
+    if(pending_threads_head)
+    {
+        for(iter = pending_threads_head; iter->next != NULL; iter = iter->next)
+        {
+            if(iter->thread->id == id)
+            {
+                if(iter == pending_threads_head)
+                {
+                    pending_threads_head = iter->next;
+                }
+                if(iter == pending_threads_tail)
+                {
+                    pending_threads_tail = iter->prev;
+                }
+                queue_remove(iter);
+                return;
+            }
+        }
+    }
+
+    // Check in ready list.
+    if(ready_threads_head)
+    {
+        for(iter = ready_threads_head; iter->next != NULL; iter = iter->next)
+        {
+            if(iter->thread->id == id)
+            {
+                if(iter == ready_threads_head)
+                {
+                    ready_threads_head = iter->next;
+                }
+                if(iter == ready_threads_tail)
+                {
+                    ready_threads_tail = iter->prev;
+                }
+                queue_remove(iter);
+                return;
+            }
+        }
+    }
 }

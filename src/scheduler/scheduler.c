@@ -49,11 +49,12 @@ void start_scheduler(schedulingpolicy_t scheduling_policy)
 
 void register_thread(mythread_t *thread)
 {
-    thread->state = STATE_NEW;
-    thread->was_preempted = false;
-
     ++scheduler.threads_num;
     ++scheduler.next_id;
+
+    thread->state = STATE_NEW;
+    thread->id = scheduler.next_id;
+    thread->was_preempted = false;
 
     sprintf(thread->name, "Thread_%d", scheduler.next_id);
     threadnode_t *thread_node = (threadnode_t *) malloc(sizeof(threadnode_t));
@@ -66,6 +67,37 @@ void register_thread(mythread_t *thread)
         roundrobin_make_ready(thread_node);
         break;
     }
+}
+
+void unregister_thread(int id)
+{
+    // This is critical change in schedulers lists, so prevent preemption for now.
+    alarm(0);
+
+    printf("Terminating thread with id: %d.\n", id);
+    fflush(stdout);
+
+    bool terminate_current_thread = (scheduler.current_thread_node->thread->id == id);
+    if(terminate_current_thread)
+    {
+        printf("Thread request to terminate itself. Very nice of him.\n");
+        fflush(stdout);
+        scheduler.current_thread_node = NULL;
+    }
+    else
+    {
+        switch(scheduler.scheduling_policy)
+        {
+        case POLICY_ROUND_ROBIN:
+            roundrobin_remove_thread(id);
+            break;
+        }
+    }
+
+    --scheduler.threads_num;
+
+    // Emulate SIGALRM signal.
+    signal_handler(SIGALRM);
 }
 
 void schedule_next_preemption()
@@ -93,19 +125,16 @@ void select_next_thread()
     printf("Selecting next thread.\n");
     fflush(stdout);
 
-    threadnode_t *current_thread = roundrobin_currently_running_thread();
-    if(current_thread)
+    if(scheduler.current_thread_node)
     {
-        fflush(stdout);
-
         // This will be start point of this thread after it gets processor time again.
-        getcontext(&current_thread->thread->context);
+        getcontext(&scheduler.current_thread_node->thread->context);
 
         // Thread has returned from previous preemption. Continue its execution.
-        if(current_thread->thread->was_preempted)
+        if(scheduler.current_thread_node->thread->was_preempted)
         {
-            current_thread->thread->was_preempted = false;
-            printf("Retrieving execution of thread: '%s'.\n", current_thread->thread->name);
+            scheduler.current_thread_node->thread->was_preempted = false;
+            printf("Retrieved execution of thread: '%s'.\n", scheduler.current_thread_node->thread->name);
             fflush(stdout);
             return;
         }
@@ -116,6 +145,7 @@ void select_next_thread()
     {
     case POLICY_ROUND_ROBIN:
         next_running_thread = roundrobin_next_running_thread();
+        //roundrobin_make_ready(scheduler.current_thread_node);
         roundrobin_make_running(next_running_thread);
         break;
     }
@@ -123,15 +153,18 @@ void select_next_thread()
     printf("Next running thread will be: '%s'.\n", next_running_thread->thread->name);
     fflush(stdout);
 
-    if(current_thread)
-        current_thread->thread->was_preempted = true;
+    if(scheduler.current_thread_node)
+        scheduler.current_thread_node->thread->was_preempted = true;
+
+    // Update schedulers handle to current thread.
+    scheduler.current_thread_node = next_running_thread;
 
     ucontext_t *next_thread_context = &next_running_thread->thread->context;
     ucontext_t swapped_context;
     if(swapcontext(&swapped_context, next_thread_context) == -1)
     {
         printf("Swapping context failed! Aborting program.\n");
+        fflush(stdout);
         abort();
     }
 }
-

@@ -12,16 +12,19 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#define TEST_LOOP_ITERATIONS        300000
+
 void func_1(void *data)
 {
     int i;
-    for(i = 0; i < 10000000; ++i)
+    for(i = 0; i < TEST_LOOP_ITERATIONS; ++i)
     {
         printf("1111 --- %d\n", i);
         fflush(stdout);
     }
 
-    printf("Thread 1 loop done.");
+    printf("Thread 1 loop done.\n");
+    //mythread_kill(2);
     fflush(stdout);
     while(1);
 }
@@ -29,13 +32,13 @@ void func_1(void *data)
 void func_2(void *data)
 {
     int i;
-    for(i = 0; i < 10000000; ++i)
+    for(i = 0; i < TEST_LOOP_ITERATIONS; ++i)
     {
         printf("2222 --- %d\n", i);
         fflush(stdout);
     }
 
-    printf("Thread 2 loop done.");
+    printf("Thread 2 loop done.\n");
     fflush(stdout);
     while(1);
 }
@@ -43,13 +46,13 @@ void func_2(void *data)
 void func_3(void *data)
 {
     int i;
-    for(i = 0; i < 10000000; ++i)
+    for(i = 0; i < TEST_LOOP_ITERATIONS; ++i)
     {
         printf("3333 --- %d\n", i);
         fflush(stdout);
     }
 
-    printf("Thread 3 loop done.");
+    printf("Thread 3 loop done.\n");
     fflush(stdout);
     while(1);
 }
@@ -61,7 +64,7 @@ int main(int argc, char *argv[])
     // Create some threads.
     mythread_start(func_1, NULL);
     mythread_start(func_2, NULL);
-    mythread_start(func_3, NULL);
+    //mythread_start(func_3, NULL);
 
     // This is blocking call.
     start_scheduler(POLICY_ROUND_ROBIN);

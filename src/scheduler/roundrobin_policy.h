@@ -24,10 +24,12 @@ void roundrobin_make_ready(struct node *thread_node);
 /// @param [i] thread_node          thread to be changed
 void roundrobin_make_running(struct node *thread_node);
 
-struct node *roundrobin_currently_running_thread();
-
 /// @brief Executes Round Robin schduling algorithm to select next thread to be 'running'.
 /// @return node representation of next running thread.
 struct node *roundrobin_next_running_thread();
+
+/// @brief Removes given thread node from lists.
+/// @param [in] id                  ID of thread to be removed
+void roundrobin_remove_thread(int id);
 
 #endif
