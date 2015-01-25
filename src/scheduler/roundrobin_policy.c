@@ -145,3 +145,19 @@ void roundrobin_remove_thread(int id)
     if(running_thread->thread->id)
         running_thread = NULL;
 }
+
+threadnode_t *roundrobin_get_pending_thread(mymutex_t *mutex)
+{
+    if(pending_threads_head)
+    {
+        threadnode_t *iter;
+        for(iter = pending_threads_head; iter != NULL; iter = iter->next)
+        {
+            if(iter->thread->pending_mutex == mutex)
+                return iter;
+        }
+    }
+
+    // No thread is waiting for given mutex.
+    return NULL;
+}

@@ -9,8 +9,12 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// INTERFACE
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// @brief Creates and starts new thread, that will execute given function with given parameters.
-/// @param [in] thread          main thread function
+/// @param [in] thread          main thread function handle
 /// @param [in] args            main thread function parameters
 /// @return non-zero thread ID if thread was created successfully. 0 otherwise
 int mythread_start(void (*thread)(void *), void *args);

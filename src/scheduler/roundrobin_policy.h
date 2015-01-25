@@ -9,6 +9,8 @@
 #ifndef ROUNDROBINPOLICY_H
 #define ROUNDROBINPOLICY_H
 
+#include "mutex.h"
+
 /// @brief Forward declaration of threadnode_t type.
 struct node;
 
@@ -31,5 +33,10 @@ struct node *roundrobin_next_running_thread();
 /// @brief Removes given thread node from lists.
 /// @param [in] id                  ID of thread to be removed
 void roundrobin_remove_thread(int id);
+
+/// @brief Returns thread waiting for given mutex.
+/// @param [in] mutex       mutex, for which will be waiting returned thread
+/// @return thread waiting for given mutex
+struct node *roundrobin_get_pending_thread(mymutex_t *mutex);
 
 #endif

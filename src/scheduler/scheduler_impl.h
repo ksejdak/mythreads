@@ -49,6 +49,16 @@ void register_thread(mythread_t *thread);
 /// @param [in] id          id of thread to be terminated
 void unregister_thread(int id);
 
+/// @brief Returns id of current thread.
+/// @return id of current thread or -1 if there is no running thread.
+int get_current_thread_id();
+
+/// @brief Disables preemption in scheduler.
+void disable_preemption();
+
+/// @brief Enables preemption in scheduler.
+void enable_preemption();
+
 /// Registers next preemption by setting POSIX alarm.
 void schedule_next_preemption();
 
@@ -58,5 +68,18 @@ void signal_handler(int sig);
 
 /// @brief Schedules next thread to be executed.
 void select_next_thread();
+
+/// @brief Returns thread waiting for given mutex.
+/// @param [in] mutex       mutex, for which will be waiting returned thread
+/// @return thread waiting for given mutex
+threadnode_t *get_pending_thread(mymutex_t *mutex);
+
+/// @brief Changes state of given thread (in node representation) to 'pending'.
+/// @param [i] thread_node          thread to be changed
+void make_thread_pending(threadnode_t *thread_node);
+
+/// @brief Changes state of given thread (in node representation) to 'ready'.
+/// @param [i] thread_node          thread to be changed
+void make_thread_ready(threadnode_t *thread_node);
 
 #endif

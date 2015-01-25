@@ -8,14 +8,11 @@
 
 #include "scheduler.h"
 #include "thread.h"
+#include "mutex.h"
 
 #include <stdio.h>
 
 #define TEST_LOOP_ITERATIONS        300000
-
-void func_1(void *data);
-void func_2(void *data);
-void func_3(void *data);
 
 void func_1(void *data)
 {

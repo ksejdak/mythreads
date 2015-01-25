@@ -14,6 +14,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 scheduler_t scheduler;
 
@@ -59,7 +60,7 @@ void start_scheduler(schedulingpolicy_t scheduling_policy)
 void register_thread(mythread_t *thread)
 {
     // This is critical change in schedulers queues, so prevent preemption for now.
-    alarm(0);
+    disable_preemption();
 
     ++scheduler.threads_num;
     ++scheduler.next_id;
@@ -67,6 +68,8 @@ void register_thread(mythread_t *thread)
     thread->state = STATE_NEW;
     thread->id = scheduler.next_id;
     thread->was_preempted = false;
+    thread->priority = 0;
+    thread->pending_mutex = NULL;
 
     sprintf(thread->name, "Thread_%d", scheduler.next_id);
     threadnode_t *thread_node = (threadnode_t *) malloc(sizeof(threadnode_t));
@@ -81,14 +84,13 @@ void register_thread(mythread_t *thread)
     }
 
     // This implies, that creating every new thread since scheduler was started is treated as preemption.
-    if(scheduler.started)
-        select_next_thread();
+    enable_preemption();
 }
 
 void unregister_thread(int id)
 {
     // This is critical change in schedulers queues, so prevent preemption for now.
-    alarm(0);
+    disable_preemption();
 
     printf("Terminating thread with id: %d.\n", id);
     fflush(stdout);
@@ -112,6 +114,24 @@ void unregister_thread(int id)
     --scheduler.threads_num;
 
     // This implies, that terminating every thread since scheduler was started is treated as preemption.
+    enable_preemption();
+}
+
+int get_current_thread_id()
+{
+    if(scheduler.current_thread_node)
+        return scheduler.current_thread_node->thread->id;
+
+    return -1;
+}
+
+void disable_preemption()
+{
+    alarm(0);
+}
+
+void enable_preemption()
+{
     if(scheduler.started)
         select_next_thread();
 }
@@ -194,5 +214,34 @@ void select_next_thread()
         printf("Swapping context failed! Aborting program.\n");
         fflush(stdout);
         abort();
+    }
+}
+
+threadnode_t *get_pending_thread(mymutex_t *mutex)
+{
+    switch(scheduler.scheduling_policy)
+    {
+    case POLICY_ROUND_ROBIN:
+        return roundrobin_get_pending_thread(mutex);
+    }
+}
+
+void make_thread_pending(threadnode_t *thread_node)
+{
+    switch(scheduler.scheduling_policy)
+    {
+    case POLICY_ROUND_ROBIN:
+        roundrobin_make_pending(thread_node);
+        break;
+    }
+}
+
+void make_thread_ready(threadnode_t *thread_node)
+{
+    switch(scheduler.scheduling_policy)
+    {
+    case POLICY_ROUND_ROBIN:
+        roundrobin_make_ready(thread_node);
+        break;
     }
 }

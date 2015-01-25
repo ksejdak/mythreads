@@ -31,7 +31,7 @@ int mythread_start(void (*thread)(void *), void *args)
 
    new_thread->context.uc_stack.ss_sp = new_thread->stack;
    new_thread->context.uc_stack.ss_size = THREAD_STACK_DEPTH;
-   makecontext(&new_thread->context, thread, 1, args);
+   makecontext(&new_thread->context, (void(*)(void)) thread, 1, args);
 
    printf("Created thread: '%s'.\n", new_thread->name);
    fflush(stdout);
@@ -41,7 +41,7 @@ int mythread_start(void (*thread)(void *), void *args)
 
 int mythread_exit()
 {
-    int current_thread_id = scheduler.current_thread_node->thread->id;
+    int current_thread_id = get_current_thread_id();
     unregister_thread(current_thread_id);
 
     return 0;

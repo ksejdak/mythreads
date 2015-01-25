@@ -9,6 +9,8 @@
 #ifndef THREADSTRUCTURES_H
 #define THREADSTRUCTURES_H
 
+#include "mutex.h"
+
 #include <stdbool.h>
 #include <ucontext.h>
 
@@ -38,6 +40,7 @@ typedef struct
     bool was_preempted;
     taskstate_t state;
     ucontext_t context;
+    mymutex_t *pending_mutex;
 } mythread_t;
 
 #endif
