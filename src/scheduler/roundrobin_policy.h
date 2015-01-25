@@ -39,4 +39,8 @@ void roundrobin_remove_thread(int id);
 /// @return thread waiting for given mutex
 struct node *roundrobin_get_pending_thread(mymutex_t *mutex);
 
+/// @brief Checks what it the highest priority of all threads waiting for this mutex.
+/// @param [in] mutex       mutex that is being locked
+int roundrobin_get_highest_priority(mymutex_t *mutex);
+
 #endif

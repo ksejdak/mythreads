@@ -18,7 +18,7 @@ int mythread_start(void (*thread)(void *), void *args)
    mythread_t *new_thread = (mythread_t *) malloc(sizeof(mythread_t));
 
    // Register this thread in scheduler and initialize it with some meta data.
-   register_thread(new_thread);
+   scheduler_register_thread(new_thread);
 
    // Obtain context of current thread.
    if(getcontext(&new_thread->context) == -1)
@@ -26,7 +26,7 @@ int mythread_start(void (*thread)(void *), void *args)
        printf("Error in obtaining thread contex.\n");
        fflush(stdout);
        free(new_thread);
-       return -1;
+       return 0;
    }
 
    new_thread->context.uc_stack.ss_sp = new_thread->stack;
@@ -41,15 +41,15 @@ int mythread_start(void (*thread)(void *), void *args)
 
 int mythread_exit()
 {
-    int current_thread_id = get_current_thread_id();
-    unregister_thread(current_thread_id);
+    int current_thread_id = scheduler_get_current_thread_id();
+    scheduler_unregister_thread(current_thread_id);
 
     return 0;
 }
 
 int mythread_kill(int id)
 {
-    unregister_thread(id);
+    scheduler_unregister_thread(id);
 
     return 0;
 }

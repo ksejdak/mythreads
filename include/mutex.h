@@ -22,7 +22,6 @@ typedef struct
 {
     bool locked;
     struct node *owner;
-    struct node *pending_queue;
     int owner_original_priority;
 } mymutex_t;
 

@@ -17,7 +17,6 @@ void mymutex_init(mymutex_t *mutex)
 {
     mutex->locked = false;
     mutex->owner = NULL;
-    mutex->pending_queue = NULL;
     mutex->owner_original_priority = 0;
 }
 
@@ -27,20 +26,23 @@ int mymutex_lock(mymutex_t *mutex)
         return 1;
 
     // This is critical change in schedulers queues, so prevent preemption for now.
-    disable_preemption();
+    scheduler_disable_preemption();
 
-    printf("Locking mutex.\n");
+    const char *current_thread_name = scheduler.current_thread_node->thread->name;
+    printf("Locking mutex by thread: '%s'.\n", current_thread_name);
     fflush(stdout);
 
     if(mutex->locked)
     {
         int owner_id = mutex->owner->thread->id;
-        int current_thread_id = get_current_thread_id();
+        int current_thread_id = scheduler_get_current_thread_id();
         if(owner_id == current_thread_id)
         {
-            printf("Mutex is already locked this thread: '%s'.\n", scheduler.current_thread_node->thread->name);
+            printf("Mutex is already locked this thread: '%s'.\n", current_thread_name);
             fflush(stdout);
-            return 1;
+            // This implies, that locking any thread since scheduler was started is treated as preemption.
+            scheduler_enable_preemption();
+            return 2;
         }
 
         // This mutex is locked by other thread. We need to wait.
@@ -54,12 +56,12 @@ int mymutex_lock(mymutex_t *mutex)
         fflush(stdout);
 
         scheduler.current_thread_node->thread->pending_mutex = mutex;
-        make_thread_pending(scheduler.current_thread_node);
-        enable_preemption();
+        scheduler_make_thread_pending(scheduler.current_thread_node);
+        scheduler_enable_preemption();
 
         // Here we know that scheduler woke us up due to unlocking mutex by its owner.
-        // TODO: small race condition here !!!
-        disable_preemption();
+        // Scheduler also knows, that we were waiting for mutex inside locking function and
+        // it didn't enable scheduling, so no need to disable it here.
     }
 
     if(!mutex->locked)
@@ -67,12 +69,18 @@ int mymutex_lock(mymutex_t *mutex)
         mutex->locked = true;
         mutex->owner = scheduler.current_thread_node;
         mutex->owner_original_priority = scheduler.current_thread_node->thread->priority;
-        printf("Mutex successfully locked by thread: '%s'.\n", scheduler.current_thread_node->thread->name);
+
+        // Get highest priority of all still waiting threads for this mutex (to prevent from priority inversion).
+        int highest_waiting_priority = scheduler_get_highest_priority(mutex);
+        if(highest_waiting_priority > scheduler.current_thread_node->thread->priority)
+            scheduler.current_thread_node->thread->priority = highest_waiting_priority;
+
+        printf("Mutex successfully locked by thread: '%s'.\n", current_thread_name);
         fflush(stdout);
     }
 
-    // This implies, that terminating every thread since scheduler was started is treated as preemption.
-    enable_preemption();
+    // This implies, that locking any thread since scheduler was started is treated as preemption.
+    scheduler_enable_preemption();
     return 0;
 }
 
@@ -82,30 +90,36 @@ int mymutex_unlock(mymutex_t *mutex)
         return 1;
 
     // This is critical change in schedulers queues, so prevent preemption for now.
-    disable_preemption();
+    scheduler_disable_preemption();
 
     int owner_id = mutex->owner->thread->id;
-    int current_thread_id = get_current_thread_id();
+    int current_thread_id = scheduler_get_current_thread_id();
 
-    printf("Unlocking mutex.\n");
+    printf("Unlocking mutex by thread: '%s'.\n", scheduler.current_thread_node->thread->name);
     fflush(stdout);
     if(owner_id != current_thread_id)
     {
         printf("Cannot unlock mutex by thread %d - it is owned by thread: %d.\n", current_thread_id, owner_id);
         fflush(stdout);
         // This implies, that terminating every thread since scheduler was started is treated as preemption.
-        enable_preemption();
-        return 1;
+        scheduler_enable_preemption();
+        return 2;
     }
 
-    // Retrieve original priority of this thread.
+    // Restore all values and release mutex.
     scheduler.current_thread_node->thread->priority = mutex->owner_original_priority;
+    scheduler.current_thread_node->thread->pending_mutex = NULL;
     mutex->locked = false;
+    mutex->owner = NULL;
+    mutex->owner_original_priority = 0;
 
-    threadnode_t *pending_thread =  get_pending_thread(mutex);
-    make_thread_ready(pending_thread);
+    // Notify any pending thread, that it has been unlocked.
+    scheduler_notify_pending_thread(mutex);
 
-    // This implies, that terminating every thread since scheduler was started is treated as preemption.
-    enable_preemption();
+    printf("Mutex successfully unlocked by thread: '%s'.\n", scheduler.current_thread_node->thread->name);
+    fflush(stdout);
+
+    // This implies, that unlocking any thread since scheduler was started is treated as preemption.
+    scheduler_enable_preemption();
     return 0;
 }

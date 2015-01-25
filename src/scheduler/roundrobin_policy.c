@@ -10,7 +10,6 @@
 #include "scheduler_impl.h"
 #include "utils/queue.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 threadnode_t *pending_threads_head;
@@ -23,11 +22,13 @@ threadnode_t *running_thread;
 
 void roundrobin_make_pending(threadnode_t *thread_node)
 {
-    if(thread_node->thread->state == STATE_PENDING)
+    if(thread_node->thread->state == STATE_PENDING || thread_node->thread->state != STATE_RUNNING)
         return;
 
-    queue_remove(thread_node);
+    // Remove this thread from 'running' handle.
+    running_thread = NULL;
 
+    // Make it 'pending'.
     if(pending_threads_head)
         queue_insert(thread_node, pending_threads_tail);
     else
@@ -46,7 +47,7 @@ void roundrobin_make_ready(threadnode_t *thread_node)
     if(thread_node->thread->state == STATE_PENDING)
     {
         if(thread_node == pending_threads_head)
-            pending_threads_head->next;
+            pending_threads_head = thread_node->next;
 
         if(thread_node == pending_threads_tail)
             pending_threads_tail = thread_node->prev;
@@ -81,7 +82,7 @@ void roundrobin_make_running(threadnode_t *thread_node)
 
     queue_remove(thread_node);
 
-    // Make this tread 'runnig'.
+    // Make this thread 'running'.
     running_thread = thread_node;
     thread_node->thread->state = STATE_RUNNING;
 }
@@ -160,4 +161,21 @@ threadnode_t *roundrobin_get_pending_thread(mymutex_t *mutex)
 
     // No thread is waiting for given mutex.
     return NULL;
+}
+
+int roundrobin_get_highest_priority(mymutex_t *mutex)
+{
+    int max_priority = -1;
+
+    if(pending_threads_head)
+    {
+        threadnode_t *iter;
+        for(iter = pending_threads_head; iter != NULL; iter = iter->next)
+        {
+            if(iter->thread->priority > max_priority)
+                max_priority = iter->thread->priority;
+        }
+    }
+
+    return max_priority;
 }

@@ -24,6 +24,6 @@ typedef enum
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Initializes and starts scheduler.
-void start_scheduler(schedulingpolicy_t scheduling_policy);
+void scheduler_start(schedulingpolicy_t scheduling_policy);
 
 #endif
