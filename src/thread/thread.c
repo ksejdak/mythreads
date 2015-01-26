@@ -17,9 +17,6 @@ int mythread_start(void (*thread)(void *), void *args)
 {
    mythread_t *new_thread = (mythread_t *) malloc(sizeof(mythread_t));
 
-   // Register this thread in scheduler and initialize it with some meta data.
-   scheduler_register_thread(new_thread);
-
    // Obtain context of current thread.
    if(getcontext(&new_thread->context) == -1)
    {
@@ -33,8 +30,8 @@ int mythread_start(void (*thread)(void *), void *args)
    new_thread->context.uc_stack.ss_size = THREAD_STACK_DEPTH;
    makecontext(&new_thread->context, (void(*)(void)) thread, 1, args);
 
-   printf("Created thread: '%s'.\n", new_thread->name);
-   fflush(stdout);
+   // Register this thread in scheduler and initialize it with some meta data.
+   scheduler_register_thread(new_thread);
 
    return new_thread->id;
 }

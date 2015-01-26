@@ -83,6 +83,9 @@ void scheduler_register_thread(mythread_t *thread)
         break;
     }
 
+    printf("Created thread: '%s'.\n", thread->name);
+    fflush(stdout);
+
     // This implies, that creating every new thread since scheduler was started is treated as preemption.
     scheduler_enable_preemption();
 }
@@ -108,6 +111,8 @@ void scheduler_unregister_thread(int id)
     {
         printf("Thread requests to terminate itself. Very nice of him.\n");
         fflush(stdout);
+        free(scheduler.current_thread_node->thread);
+        free(scheduler.current_thread_node);
         scheduler.current_thread_node = NULL;
     }
 

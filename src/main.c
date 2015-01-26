@@ -19,11 +19,15 @@
 mymutex_t mutex;
 #endif
 
+void func_3(void *data);
+
 void func_1(void *data)
 {
 #if TEST_MUTEX
     mymutex_lock(&mutex);
 #endif
+
+    mythread_start(func_3, NULL);
 
     int i;
     for(i = 0; i < TEST_LOOP_ITERATIONS; ++i)
@@ -96,7 +100,7 @@ int main(int argc, char *argv[])
     // Create some threads.
     mythread_start(func_1, NULL);
     mythread_start(func_2, NULL);
-    mythread_start(func_3, NULL);
+    //mythread_start(func_3, NULL);
 
     // This is blocking call.
     scheduler_start(POLICY_ROUND_ROBIN);
