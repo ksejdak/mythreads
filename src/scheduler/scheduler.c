@@ -2,7 +2,7 @@
 //
 // Filename   : scheduler.c
 // Author     : Kuba Sejdak
-// Created on : 20 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -55,6 +55,13 @@ void scheduler_start(schedulingpolicy_t scheduling_policy)
 
     if(scheduler.threads_num > 0)
         scheduler_select_next_thread();
+
+    // Remove dead thread, if available.
+    if(scheduler.dead_thread_node)
+        scheduler_remove_dead_thread();
+
+    printf("Exiting from scheduler.\n");
+    fflush(stdout);
 }
 
 void scheduler_register_thread(mythread_t *thread)
@@ -98,28 +105,37 @@ void scheduler_unregister_thread(int id)
     printf("Terminating thread with id: %d.\n", id);
     fflush(stdout);
 
-    // Remove this thread from queues.
-    switch(scheduler.scheduling_policy)
-    {
-    case POLICY_ROUND_ROBIN:
-        roundrobin_remove_thread(id);
-        break;
-    }
-
     bool terminate_current_thread = (scheduler.current_thread_node->thread->id == id);
     if(terminate_current_thread)
     {
         printf("Thread requests to terminate itself. Very nice of him.\n");
         fflush(stdout);
-        free(scheduler.current_thread_node->thread);
-        free(scheduler.current_thread_node);
         scheduler.current_thread_node = NULL;
+    }
+
+    // Remove this thread from queues.
+    switch(scheduler.scheduling_policy)
+    {
+    case POLICY_ROUND_ROBIN:
+        scheduler.dead_thread_node = roundrobin_remove_thread(id);
+        break;
     }
 
     --scheduler.threads_num;
 
     // This implies, that terminating every thread since scheduler was started is treated as preemption.
     scheduler_enable_preemption();
+}
+
+void scheduler_remove_dead_thread()
+{
+    printf("Releasing resources of thread with id: %d.\n", scheduler.dead_thread_node->thread->id);
+    fflush(stdout);
+
+    free(scheduler.dead_thread_node->thread);
+    free(scheduler.dead_thread_node);
+
+    scheduler.dead_thread_node = NULL;
 }
 
 int scheduler_get_current_thread_id()
@@ -167,7 +183,7 @@ void scheduler_select_next_thread()
 
     if(scheduler.threads_num == 0)
     {
-        printf("All threads terminated. Exiting from scheduler.\n");
+        printf("All threads terminated. Restoring main context.\n");
         fflush(stdout);
         ucontext_t swapped_context;
         swapcontext(&swapped_context, &scheduler.context);
@@ -182,6 +198,10 @@ void scheduler_select_next_thread()
         // Thread has returned from previous preemption. Continue its execution.
         if(scheduler.current_thread_node->thread->was_preempted)
         {
+            // Remove dead thread, if available.
+            if(scheduler.dead_thread_node)
+                scheduler_remove_dead_thread();
+
             scheduler.current_thread_node->thread->was_preempted = false;
             printf("Retrieved execution of thread: '%s'.\n", scheduler.current_thread_node->thread->name);
             fflush(stdout);

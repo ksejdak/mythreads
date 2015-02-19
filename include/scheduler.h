@@ -2,7 +2,7 @@
 //
 // Filename   : scheduler.h
 // Author     : Kuba Sejdak
-// Created on : 20 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 

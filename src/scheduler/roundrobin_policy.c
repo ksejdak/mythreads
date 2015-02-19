@@ -2,7 +2,7 @@
 //
 // Filename   : roundrobin_policy.c
 // Author     : Kuba Sejdak
-// Created on : 22 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -96,7 +96,7 @@ threadnode_t *roundrobin_next_running_thread()
     return first_ready_thread;
 }
 
-void roundrobin_remove_thread(int id)
+threadnode_t *roundrobin_remove_thread(int id)
 {
     threadnode_t *iter;
 
@@ -114,9 +114,7 @@ void roundrobin_remove_thread(int id)
                     pending_threads_tail = iter->prev;
 
                 queue_remove(iter);
-                free(iter->thread);
-                free(iter);
-                return;
+                return iter;
             }
         }
     }
@@ -135,16 +133,20 @@ void roundrobin_remove_thread(int id)
                     ready_threads_tail = iter->prev;
 
                 queue_remove(iter);
-                free(iter->thread);
-                free(iter);
-                return;
+                return iter;
             }
         }
     }
 
     // Check in running handle.
-    if(running_thread->thread->id)
+    if(running_thread->thread->id == id)
+    {
+        threadnode_t *tmp = running_thread;
         running_thread = NULL;
+        return tmp;
+    }
+
+    return NULL;
 }
 
 threadnode_t *roundrobin_get_pending_thread(mymutex_t *mutex)

@@ -2,7 +2,7 @@
 //
 // Filename   : thread_structures.h
 // Author     : Kuba Sejdak
-// Created on : 20 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -27,7 +27,8 @@ typedef enum
     STATE_NEW,
     STATE_PENDING,
     STATE_READY,
-    STATE_RUNNING
+    STATE_RUNNING,
+    STATE_DEAD
 } taskstate_t;
 
 // @brief Represents thread handle and all its resources.

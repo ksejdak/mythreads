@@ -2,7 +2,7 @@
 //
 // Filename   : scheduler_impl.h
 // Author     : Kuba Sejdak
-// Created on : 21 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -31,6 +31,7 @@ typedef struct
     unsigned int threads_num;
     unsigned int next_id;
     threadnode_t *current_thread_node;
+    threadnode_t *dead_thread_node;
     ucontext_t context;
     char stack[THREAD_STACK_DEPTH];
 } scheduler_t;
@@ -48,6 +49,9 @@ void scheduler_register_thread(mythread_t *thread);
 /// @brief Unregisters tread from schedulers lists and terminates it.
 /// @param [in] id          id of thread to be terminated
 void scheduler_unregister_thread(int id);
+
+/// @brief Removes dead thread, if any is available.
+void scheduler_remove_dead_thread();
 
 /// @brief Returns id of current thread.
 /// @return id of current thread or -1 if there is no running thread.

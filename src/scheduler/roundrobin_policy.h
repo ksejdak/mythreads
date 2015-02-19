@@ -2,7 +2,7 @@
 //
 // Filename   : roundrobin_policy.h
 // Author     : Kuba Sejdak
-// Created on : 22 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -32,7 +32,8 @@ struct node *roundrobin_next_running_thread();
 
 /// @brief Removes given thread node from lists.
 /// @param [in] id                  ID of thread to be removed
-void roundrobin_remove_thread(int id);
+/// @return Removed thread handle
+struct node *roundrobin_remove_thread(int id);
 
 /// @brief Returns thread waiting for given mutex.
 /// @param [in] mutex       mutex, for which will be waiting returned thread

@@ -2,7 +2,7 @@
 //
 // Filename   : queue.h
 // Author     : Kuba Sejdak
-// Created on : 22 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 

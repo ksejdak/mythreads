@@ -2,7 +2,7 @@
 //
 // Filename   : mutex.c
 // Author     : Kuba Sejdak
-// Created on : 25 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 

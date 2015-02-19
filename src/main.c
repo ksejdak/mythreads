@@ -2,7 +2,7 @@
 //
 // Filename   : main.c
 // Author     : Kuba Sejdak
-// Created on : 20 gru 2014
+// Created on : 20 Jan 2015
 //
 //============================================================================
 
@@ -72,6 +72,8 @@ void func_3(void *data)
 #if TEST_MUTEX
     mymutex_lock(&mutex);
 #endif
+
+    mythread_kill(1);
 
     int i;
     for(i = 0; i < TEST_LOOP_ITERATIONS; ++i)
